@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#12345b" />
+    <meta
+      name="description"
+      content="แดชบอร์ดสรุปสถานะระบบ DTRS สำหรับรายงานรายวัน รายสัปดาห์ และรายเดือน"
+    />
+    <title>DTRS System Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="เมนูหลัก">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div>
+            <strong>DTRS</strong>
+            <small>Operations Center</small>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" type="button" aria-current="page">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="4" rx="1"/><rect x="14" y="10" width="7" height="11" rx="1"/><rect x="3" y="13" width="7" height="8" rx="1"/></svg>
+            <span>ภาพรวมระบบ</span>
+          </button>
+          <button class="nav-item" type="button" data-scroll="systems">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 17v-5a8 8 0 0 1 16 0v5"/><path d="M2 17h4v4H2zM18 17h4v4h-4z"/><path d="M9 19h6"/></svg>
+            <span>สถานะระบบ</span>
+          </button>
+          <button class="nav-item" type="button" data-scroll="stations">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2v4M8 22h8M10 18h4M12 6l-4 12h8z"/><path d="M5.5 7.5a9 9 0 0 0 0 9M18.5 7.5a9 9 0 0 1 0 9"/></svg>
+            <span>สถานีและอุปกรณ์</span>
+          </button>
+          <button class="nav-item" type="button" data-scroll="report-content">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M16 3v4h4M8 11h8M8 15h8M8 19h5"/></svg>
+            <span>หัวข้อรายงาน</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-note">
+          <span class="live-dot"></span>
+          <div><strong>ระบบทำงานปกติ</strong><small>อัปเดต 3 ก.ย. 2569 · 08:30</small></div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">ศูนย์ควบคุมระบบโครงข่ายสื่อสาร</p>
+            <h1>DTRS System Dashboard</h1>
+          </div>
+          <div class="top-actions">
+            <input id="import-file" type="file" accept=".xlsx,.xls" hidden />
+            <button class="print-button" id="import-button" type="button" aria-label="นำเข้าไฟล์ Excel">
+              <span>นำเข้าไฟล์</span>
+            </button>
+            <label class="select-wrap">
+              <span>ระบบ</span>
+              <select id="system-filter" aria-label="เลือกระบบ">
+                <option value="all">ทุกระบบ</option>
+                <option value="BSSC">BSSC</option>
+                <option value="SD-WAN">SD-WAN</option>
+                <option value="Microwave">Microwave</option>
+                <option value="Dispatcher">Dispatcher</option>
+              </select>
+            </label>
+            <button class="print-button" id="print-button" type="button">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>
+              <span>พิมพ์รายงาน</span>
+            </button>
+            <button class="icon-button" id="refresh-button" type="button" aria-label="รีเฟรชข้อมูล" title="รีเฟรชข้อมูล">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6 6.5L4 11M5.5 15A7 7 0 0 0 18 17.5l2-4.5"/></svg>
+            </button>
+          </div>
+        </header>
+
+        <section class="period-bar" aria-label="เลือกรอบรายงาน">
+          <div class="segmented" role="tablist">
+            <button type="button" class="period-tab active" data-period="daily" role="tab" aria-selected="true">รายวัน</button>
+            <button type="button" class="period-tab" data-period="weekly" role="tab" aria-selected="false">รายสัปดาห์</button>
+            <button type="button" class="period-tab" data-period="monthly" role="tab" aria-selected="false">รายเดือน</button>
+          </div>
+          <div class="report-date">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2zM7 2v4M17 2v4M3 9h18"/></svg>
+            <span id="period-label">3 กันยายน 2569</span>
+          </div>
+        </section>
+
+        <section class="action-center" aria-live="polite">
+          <div class="action-copy">
+            <div class="action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="m7 12 3 3 7-7"/><circle cx="12" cy="12" r="9"/></svg>
+            </div>
+            <div>
+              <p>สิ่งที่ต้องดำเนินการ</p>
+              <h2 id="overall-title">ไม่มีรายการที่ต้องดำเนินการ</h2>
+              <span id="overall-detail">ตรวจสอบสถานีและอุปกรณ์ครบ 16 จุด ไม่พบเหตุขัดข้อง</span>
+            </div>
+          </div>
+          <div class="health-overview">
+            <span>ระบบหลักปกติ</span>
+            <strong>4<small>/4</small></strong>
+            <div class="health-dots" aria-label="ระบบปกติ 4 ระบบ"><i></i><i></i><i></i><i></i></div>
+          </div>
+        </section>
+
+        <section class="kpi-grid" aria-label="ตัวชี้วัดสำคัญ">
+          <article class="kpi-card primary">
+            <div class="kpi-head"><span>ความพร้อมใช้งานเฉลี่ย</span><em id="availability-trend">ตาม SLA</em></div>
+            <strong id="availability-kpi">100.00<small>%</small></strong>
+            <div class="mini-progress"><i id="availability-progress"></i></div>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-head"><span>สถานีออนไลน์</span><em>ทั้งหมด</em></div>
+            <strong><span id="online-kpi">16</span><small>/ 16 จุด</small></strong>
+            <p>Base Station 8 · Analog Gateway 8</p>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-head"><span>เวลาหยุดให้บริการ</span><em id="downtime-unit">วันนี้</em></div>
+            <strong><span id="downtime-kpi">0</span><small> นาที</small></strong>
+            <p id="downtime-detail">ไม่พบ Downtime</p>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-head"><span>รายการรอแก้ไข</span><em>Pending</em></div>
+            <strong>0<small> รายการ</small></strong>
+            <p>ไม่มีประเด็นคงค้าง</p>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-head"><span>Alarm ที่กำลังทำงาน</span><em>Active</em></div>
+            <strong>0<small> Alarm</small></strong>
+            <p>ไม่พบ Alarm ที่กระทบบริการ</p>
+          </article>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="panel trend-panel">
+            <div class="panel-header">
+              <div><p class="panel-kicker">SERVICE AVAILABILITY</p><h3 id="trend-title">แนวโน้มความพร้อมใช้งาน 31 วัน</h3></div>
+              <div class="chart-legend" id="chart-legend"></div>
+            </div>
+            <div class="chart-wrap"><canvas id="availability-chart" aria-label="กราฟแนวโน้มความพร้อมใช้งาน"></canvas></div>
+            <div class="chart-axis"><span>1 ส.ค.</span><span>8 ส.ค.</span><span>15 ส.ค.</span><span>22 ส.ค.</span><span>31 ส.ค.</span></div>
+          </article>
+
+          <article class="panel summary-panel">
+            <div class="panel-header"><div><p class="panel-kicker">REPORT SUMMARY</p><h3 id="summary-title">สรุปรายงานประจำวัน</h3></div><span class="verified">ตรวจสอบแล้ว</span></div>
+            <dl class="summary-list" id="summary-list"></dl>
+            <div class="customer-message">
+              <span>ข้อความแจ้งผู้ใช้งาน</span>
+              <p id="customer-message">ระบบให้บริการตามปกติ ไม่พบเหตุขัดข้อง</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel" id="systems">
+          <div class="panel-header">
+            <div><p class="panel-kicker">CORE SYSTEMS</p><h3>สถานะระบบหลัก</h3></div>
+            <span class="subtle" id="system-count">4 ระบบทำงานปกติ</span>
+          </div>
+          <div class="system-grid" id="system-grid"></div>
+        </section>
+
+        <section class="dashboard-grid lower-grid">
+          <article class="panel stations-panel" id="stations">
+            <div class="panel-header">
+              <div><p class="panel-kicker">STATION MONITORING</p><h3>สถานีและอุปกรณ์</h3></div>
+              <span class="subtle" id="station-result-count">8 สถานี</span>
+            </div>
+            <div class="station-tools">
+              <label class="search-field">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                <input id="station-search" type="search" placeholder="ค้นหารหัสหรือชื่อสถานี" autocomplete="off" />
+              </label>
+              <div class="station-toggle" role="group" aria-label="ประเภทสถานี">
+                <button type="button" class="station-type active" data-type="base">Base Station</button>
+                <button type="button" class="station-type" data-type="gateway">Analog Gateway</button>
+              </div>
+              <label class="status-filter">
+                <span class="sr-only">กรองสถานะ</span>
+                <select id="station-status" aria-label="กรองสถานะสถานี">
+                  <option value="all">ทุกสถานะ</option>
+                  <option value="online">Online</option>
+                  <option value="warning">Warning</option>
+                  <option value="down">Down</option>
+                </select>
+              </label>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>รหัส</th><th>ชื่อสถานี</th><th>อุปกรณ์</th><th>ตรวจล่าสุด</th><th>สถานะ</th></tr></thead>
+                <tbody id="station-rows"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel report-panel" id="report-content">
+            <div class="panel-header"><div><p class="panel-kicker">REPORT CONTENT</p><h3 id="content-title">หัวข้อรายงานรายวัน</h3></div></div>
+            <ol class="report-checklist" id="report-checklist"></ol>
+            <div class="source-note">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>
+              <p>อ้างอิงโครงสร้างจากไฟล์ <strong>รายงานประจำวันชุมสาย v2.1.xlsx</strong><br><span>ข้อมูล Event Log: 1–31 สิงหาคม 2569</span></p>
+            </div>
+          </article>
+        </section>
+
+        <footer>ระบบ DTRS · โครงการเพิ่มประสิทธิภาพระบบโครงข่ายสื่อสารด้วยอุปกรณ์ทวนสัญญาณผ่านคลื่นความถี่สูง (SHF)</footer>
+      </main>
+    </div>
+    <dialog class="system-dialog" id="system-dialog">
+      <div class="dialog-head">
+        <div><p class="panel-kicker">SYSTEM DETAIL</p><h2 id="dialog-title">รายละเอียดระบบ</h2></div>
+        <button class="dialog-close" id="dialog-close" type="button" aria-label="ปิดหน้าต่าง">×</button>
+      </div>
+      <p class="dialog-scope" id="dialog-scope"></p>
+      <div class="dialog-metrics">
+        <div><span>สถานะ</span><strong class="status-ok">ปกติ</strong></div>
+        <div><span>Availability</span><strong id="dialog-availability">100.00%</strong></div>
+        <div><span>Downtime</span><strong id="dialog-downtime">0 นาที</strong></div>
+      </div>
+      <div class="dialog-message"><strong>ข้อความแจ้งผู้ใช้งาน</strong><p>ให้บริการตามปกติ ไม่พบเหตุขัดข้อง</p></div>
+    </dialog>
+    <div class="toast" id="toast" role="status">อัปเดตข้อมูลล่าสุดแล้ว</div>
+    <script src="./data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
