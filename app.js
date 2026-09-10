@@ -58,11 +58,12 @@ function renderReport(period) {
   $("#downtime-detail").textContent = period === "daily" ? "สูงสุด " + downtime + " นาทีต่อระบบ" : "รวม " + downtime + " นาที";
   $("#summary-list").innerHTML = [["Availability", availability.toFixed(2) + "%"], ["สถานีออนไลน์", "16 / 16 จุด"], ["Downtime", downtime + " นาที"], ["Alarm", "0 รายการ"]].map((item) => "<div><dt>" + item[0] + "</dt><dd>" + item[1] + "</dd></div>").join("");
   $("#chart-legend").textContent = "Availability · SLA 95%";
-  $("#report-checklist").innerHTML = ["ตรวจสอบสถานะระบบหลัก", "ตรวจสอบสถานีและอุปกรณ์", "สรุป Availability และ Downtime", "ยืนยันข้อความแจ้งผู้ใช้งาน"].map((item) => "<li>" + item + "</li>").join("");
+  $("#report-checklist").innerHTML = ["ตรวจสอบสถานะระบบหลัก", "ตรวจสอบสถานีและอุปกรณ์", "สรุปความพร้อมใช้งานของระบบ และ ข้อบกพร่องรอการแก้ไข", "ยืนยันสถานะแจ้งผู้ใช้งาน"].map((item) => "<li>" + item + "</li>").join("");
   drawChart();
 }
 
 function drawChart() {
+  ข้อความ
   const canvas = $("#availability-chart");
   if (!canvas) return;
   const context = canvas.getContext("2d");
@@ -105,6 +106,138 @@ function showToast() {
   const toast = $("#toast"); toast.classList.add("show"); window.setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
+function openPrintReport() {
+  const data = window.dashboardData || {};
+  const period = currentPeriod;
+  const periodLabel_map = { daily: 'รายวัน', weekly: 'รายสัปดาห์', monthly: 'รายเดือน' };
+  const pLabel = periodLabel_map[period] || 'รายวัน';
+  const reportDate = data.summary?.reportDate || new Intl.DateTimeFormat('th-TH-u-ca-buddhist', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+  const pData = periodData(period);
+  const rows = pData.rows || [];
+  const availability = rows.length ? (rows.reduce((s, r) => s + r.availability, 0) / rows.length).toFixed(4) : (data.summary?.averageAvailability || 100).toFixed(4);
+  const downtime = rows.length ? (period === 'daily' ? Math.max(...rows.map(r => r.downtime)) : rows.reduce((s, r) => s + r.downtime, 0)) : (data.summary?.totalDowntime || 0);
+  const sysRows = (data.systems || []).map((sys, i) => {
+    const sysEvents = rows.filter(r => r.system === sys.id);
+    const sysAvail = sysEvents.length ? (sysEvents.reduce((s, r) => s + r.availability, 0) / sysEvents.length).toFixed(2) + '%' : '100.00%';
+    const statusTh = sys.status === 'online' ? 'ปกติ' : 'ขัดข้อง';
+    const statusColor = sys.status === 'online' ? '#177b7b' : '#b64752';
+    return `<tr><td style="text-align:center;border-right:1px solid #000">${i + 1}</td><td style="border-right:1px solid #000;font-weight:700">${sys.name}</td><td style="border-right:1px solid #000;font-size:9pt">${sys.scope}</td><td style="text-align:center;border-right:1px solid #000">${sysAvail}</td><td style="text-align:center;color:${statusColor};font-weight:700">${statusTh}</td></tr>`;
+  }).join('');
+  const allStations = (data.stations || []);
+  const MIN_ROWS = 15;
+  const paddedStations = [...allStations];
+  while (paddedStations.length < MIN_ROWS) paddedStations.push({ code: '', name: '', device: '', checked: '', status: '' });
+  const stationRows = paddedStations.map((st, i) => {
+    const statusTh = st.status === 'online' ? 'Online' : st.status === 'warning' ? 'Warning' : st.status === 'down' ? 'Down' : '';
+    const statusColor = st.status === 'online' ? '#177b7b' : st.status === 'warning' ? '#a86d12' : st.status === 'down' ? '#b64752' : '#000';
+    return `<tr style="min-height:16px"><td style="text-align:center;border-right:1px solid #000">${st.code ? i + 1 : ''}</td><td style="border-right:1px solid #000">${st.code || ''}</td><td style="border-right:1px solid #000">${st.name || ''}</td><td style="border-right:1px solid #000">${st.device || ''}</td><td style="text-align:center;border-right:1px solid #000">${st.checked || ''}</td><td style="text-align:center;color:${statusColor};font-weight:${statusColor !== '#000' ? '700' : '400'}">${statusTh}</td></tr>`;
+  }).join('');
+  const online = allStations.filter(s => s.status === 'online').length;
+  const ver = data.version ? 'v' + data.version : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>รายงานสถานะระบบ DTRS</title>
+<style>
+  @page { size: A4 portrait; margin: 10mm 15mm 30mm 15mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sarabun', 'Noto Sans Thai', sans-serif; font-size: 10pt; color: #000; background: #fff; }
+  .header { display: flex; align-items: center; gap: 16px; padding-bottom: 6mm; border-bottom: 2px solid #000; margin-bottom: 4mm; }
+  .logo-box { width: 28mm; height: 14mm; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 8pt; color: #888; flex-shrink: 0; }
+  .company-th { font-size: 18pt; font-weight: 700; color: #5b9bd5; line-height: 1.1; }
+  .company-en { font-size: 9pt; font-weight: 700; color: #5b9bd5; letter-spacing: .06em; }
+  .company-addr { font-size: 8pt; color: #555; margin-top: 2px; }
+  .doc-title { text-align: center; font-size: 16pt; font-weight: 700; border-bottom: 2px solid #000; display: inline-block; padding-bottom: 1px; }
+  .title-row { text-align: center; margin: 4mm 0 3mm; }
+  .meta-row { display: flex; justify-content: space-between; font-size: 9pt; font-weight: 700; margin-bottom: 3mm; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 3mm; margin-bottom: 4mm; }
+  .kpi-box { border: 1px solid #000; padding: 3mm; text-align: center; }
+  .kpi-label { font-size: 8pt; color: #444; }
+  .kpi-value { font-size: 14pt; font-weight: 700; color: #12345b; line-height: 1.2; }
+  .kpi-unit { font-size: 8pt; font-weight: 400; color: #666; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  th, td { padding: 2px 5px; border-bottom: 1px solid #000; }
+  th { background: #f8fafc; font-weight: 700; text-align: center; }
+  .section-title { font-size: 11pt; font-weight: 700; margin: 4mm 0 2mm; border-left: 3px solid #5b9bd5; padding-left: 3mm; }
+  .table-wrap { border: 1px solid #000; margin-bottom: 4mm; break-inside: avoid; }
+  .signatures { display: flex; justify-content: space-between; margin-top: 8mm; break-inside: avoid; }
+  .sig-box { width: 44%; text-align: center; }
+  .sig-line { border-top: 1px solid #000; margin: 10mm 4mm 0; }
+  .sig-label { font-size: 9pt; margin-top: 2mm; }
+  .sig-date { font-size: 8pt; color: #555; margin-top: 2mm; }
+  .footer-note { text-align: center; font-size: 8pt; color: #888; margin-top: 6mm; border-top: 1px solid #ddd; padding-top: 3mm; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-box">FORTH LOGO</div>
+  <div>
+    <div class="company-th">บริษัท ฟอร์ท คอร์ปอเรชั่น จำกัด (มหาชน)</div>
+    <div class="company-en">FORTH CORPORATION PUBLIC COMPANY LIMITED</div>
+    <div class="company-addr">1053/1 ถนนพหลโยธิน แขวงพญาไท เขตพญาไท กรุงเทพมหานคร 10400</div>
+  </div>
+</div>
+
+<div class="title-row"><span class="doc-title">รายงานสถานะระบบ DTRS</span></div>
+
+<div class="meta-row">
+  <span>ช่วงรายงาน: ${pLabel}</span>
+  <span>วันที่: ${reportDate}</span>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-box"><div class="kpi-label">ความพร้อมใช้งานเฉลี่ย</div><div class="kpi-value">${availability}<span class="kpi-unit">%</span></div></div>
+  <div class="kpi-box"><div class="kpi-label">เวลาหยุดให้บริการ</div><div class="kpi-value">${downtime}<span class="kpi-unit"> นาที</span></div></div>
+  <div class="kpi-box"><div class="kpi-label">สถานีออนไลน์</div><div class="kpi-value">${online}<span class="kpi-unit"> / ${allStations.length} จุด</span></div></div>
+  <div class="kpi-box"><div class="kpi-label">Alarm ที่กำลังทำงาน</div><div class="kpi-value">0<span class="kpi-unit"> Alarm</span></div></div>
+</div>
+
+<div class="section-title">สถานะระบบหลัก</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:6%;border-right:1px solid #000">ลำดับ</th><th style="width:14%;border-right:1px solid #000">ระบบ</th><th style="width:42%;border-right:1px solid #000;text-align:left">ขอบเขต</th><th style="width:16%;border-right:1px solid #000">Availability</th><th style="width:22%">สถานะ</th></tr></thead>
+    <tbody>${sysRows}</tbody>
+  </table>
+</div>
+
+<div class="section-title">ตารางสถานีและอุปกรณ์</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:6%;border-right:1px solid #000">ลำดับ</th><th style="width:12%;border-right:1px solid #000">รหัส</th><th style="width:32%;border-right:1px solid #000;text-align:left">ชื่อสถานี</th><th style="width:20%;border-right:1px solid #000">อุปกรณ์</th><th style="width:16%;border-right:1px solid #000">ตรวจล่าสุด</th><th style="width:14%">สถานะ</th></tr></thead>
+    <tbody>${stationRows}</tbody>
+  </table>
+</div>
+
+<div class="signatures">
+  <div class="sig-box">
+    <div class="sig-line"></div>
+    <div class="sig-label">ผู้จัดทำรายงาน</div>
+    <div class="sig-date">วันที่ ______/______/__________</div>
+  </div>
+  <div class="sig-box">
+    <div class="sig-line"></div>
+    <div class="sig-label">ผู้ตรวจสอบ</div>
+    <div class="sig-date">วันที่ ______/______/__________</div>
+  </div>
+</div>
+
+<div class="footer-note">ระบบ DTRS · โครงการเพิ่มประสิทธิภาพระบบโครงข่ายสื่อสาร (SHF) ${ver}</div>
+
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=900,height=700,scrollbars=yes');
+  if (!win) { window.alert('กรุณาอนุญาต Popup สำหรับเว็บไซต์นี้เพื่อพิมพ์รายงาน'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  win.setTimeout(() => { win.print(); win.close(); }, 600);
+}
+
 async function importWorkbook(file) {
   if (!window.XLSX) throw new Error("ตัวอ่านไฟล์ยังโหลดไม่เสร็จ");
   const workbook = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: true });
@@ -123,10 +256,10 @@ async function importWorkbook(file) {
     const gateway = /^AGW$/i.test(code);
     const displayCode = gateway ? "AGW-" + String(++gatewayIndex.value).padStart(2, "0") : code;
     return {
-    type: gateway ? "gateway" : "base",
-    code: displayCode, name: String(row[1]),
-    device: gateway ? "Analog Gateway" : "Base Station",
-    checked: "ล่าสุด", status: "online"
+      type: gateway ? "gateway" : "base",
+      code: displayCode, name: String(row[1]),
+      device: gateway ? "Analog Gateway" : "Base Station",
+      checked: "ล่าสุด", status: "online"
     };
   });
   if (!importedStations.length || !eventRows.length) throw new Error("ไม่พบข้อมูลสถานีหรือ Event Log ที่รองรับ");
@@ -146,7 +279,7 @@ $$(".station-type").forEach((button) => button.addEventListener("click", () => {
 $$(".period-tab").forEach((button) => button.addEventListener("click", () => { $$(".period-tab").forEach((item) => { item.classList.remove("active"); item.setAttribute("aria-selected", "false"); }); button.classList.add("active"); button.setAttribute("aria-selected", "true"); renderReport(button.dataset.period); }));
 $$("[data-scroll]").forEach((button) => button.addEventListener("click", () => $("#" + button.dataset.scroll)?.scrollIntoView({ behavior: "smooth" })));
 $("#refresh-button")?.addEventListener("click", showToast);
-$("#print-button")?.addEventListener("click", () => window.print());
+$("#print-button")?.addEventListener("click", openPrintReport);
 $("#import-button")?.addEventListener("click", () => $("#import-file")?.click());
 $("#import-file")?.addEventListener("change", async (event) => {
   const button = $("#import-button");
@@ -159,3 +292,4 @@ $("#dialog-close")?.addEventListener("click", () => $("#system-dialog")?.close()
 $("#system-dialog")?.addEventListener("click", (event) => { if (event.target === event.currentTarget) event.currentTarget.close(); });
 window.addEventListener("resize", drawChart);
 renderSystems(); renderStations(); renderReport("daily");
+const _ver = window.dashboardData?.version; if (_ver && $("#app-version")) $("#app-version").textContent = "v" + _ver;
