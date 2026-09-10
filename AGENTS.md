@@ -5,7 +5,7 @@
 This repository is currently a small static web dashboard:
 
 - `index.html` contains the Thai-language DTRS dashboard markup, accessibility labels, controls, and page structure.
-- `styles.css` and `app.js` are referenced by `index.html` but are not currently present; add them at the repository root if implementing the visual or interactive layers.
+- `styles.css`, `app.js`, and `data.js` provide the styling, interaction logic, and initial dataset at the repository root.
 - No source, test, asset, or generated-output directories exist yet. Keep future images and other static assets in `assets/` and tests in `tests/` unless the project adopts a different build layout.
 
 ## Build, Test, and Development Commands
