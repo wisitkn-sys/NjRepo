@@ -70,18 +70,13 @@
       <!-- Print-only header: logos + project title -->
       <div class="print-header" aria-hidden="true">
         <div class="print-logo-box">
-          <img src="./logo/EX Forth.png" alt="Forth Corporation" class="print-logo-forth" />
+          <img src="./logo/Nbtc.png" alt="สำนักงาน กสทช." class="print-logo-nbtc" />
         </div>
         <div class="print-header-center">
-          <div class="print-project-title">การจัดซื้ออุปกรณ์พร้อมดำเนินการติดตั้งโครงการเพิ่มประสิทธิภาพระบบโครงข่ายสื่อสารด้วยอุปกรณ์ทวนสัญญาณผ่านคลื่นความถี่สูง (SHF)<br>เพื่อสนับสนุนการปฏิบัติราชการและแก้ไขปัญหาให้กับประชาชนในพื้นที่ห่างไกล</div>
-          <div class="print-contract">สัญญาเลขที่ ๘๖๘๐๒๒๘ ลงวันที่ ๒๓ กรกฎาคม ๒๕๖๘</div>
-          <div class="print-doc-row">
-            <span class="print-doc-title">รายงานสรุปสถานะระบบ DTRS</span>
-            <span class="print-meta-date" id="print-period-label">ข้อมูลประจำวัน</span>
-          </div>
+          <div class="print-project-title">การจัดซื้ออุปกรณ์พร้อมดำเนินการติดตั้ง<br>โครงการเพิ่มประสิทธิภาพระบบโครงข่ายสื่อสารด้วยอุปกรณ์ทวนสัญญาณผ่านคลื่นความถี่สูง (SHF)<br>เพื่อสนับสนุนการปฏิบัติราชการและแก้ไขปัญหาให้กับประชาชนในพื้นที่ห่างไกล<br>สัญญาเลขที่ ๘๖๘๐๒๒๘ ลงวันที่ ๒๓ กรกฎาคม ๒๕๖๘</div>
         </div>
         <div class="print-logo-box">
-          <img src="./logo/Nbtc.png" alt="สำนักงาน กสทช." class="print-logo-nbtc" />
+          <img src="./logo/EX Forth.png" alt="Forth Corporation" class="print-logo-forth" />
         </div>
       </div>
       <header class="topbar">
@@ -130,10 +125,27 @@
             aria-selected="false">รายเดือน</button>
         </div>
         <div class="report-date">
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path d="M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2zM7 2v4M17 2v4M3 9h18" />
-          </svg>
-          <span id="period-label">3 กันยายน 2569</span>
+          <button class="date-picker-button" id="date-picker-button" type="button" aria-label="เปิดตัวเลือกวันที่รายงาน" aria-controls="date-filter">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2zM7 2v4M17 2v4M3 9h18" />
+            </svg>
+          </button>
+          <button class="date-filter" id="date-filter" type="button" aria-label="เลือกวันที่รายงาน" aria-haspopup="dialog" aria-expanded="false">เลือกวันที่</button>
+          <dialog class="calendar-dialog" id="calendar-dialog" aria-labelledby="calendar-month-label">
+            <div class="calendar-head">
+              <button class="calendar-nav" id="calendar-prev" type="button" aria-label="เดือนก่อนหน้า">‹</button>
+              <strong id="calendar-month-label"></strong>
+              <button class="calendar-nav" id="calendar-next" type="button" aria-label="เดือนถัดไป">›</button>
+            </div>
+            <div class="calendar-legend" aria-hidden="true">
+              <span><i class="legend-swatch weekend"></i>วันเสาร์-อาทิตย์</span>
+              <span><i class="legend-swatch selected"></i>ช่วงวันที่เลือก</span>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true">
+              <span>อาทิตย์</span><span>จันทร์</span><span>อังคาร</span><span>พุธ</span><span>พฤหัส</span><span>ศุกร์</span><span>เสาร์</span>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+          </dialog>
         </div>
       </section>
 
@@ -164,11 +176,6 @@
           <div class="kpi-head"><span>สถานีออนไลน์</span><em>ทั้งหมด</em></div>
           <strong><span id="online-kpi">16</span><small>/ 16 จุด</small></strong>
           <p>Base Station 8 · Analog Gateway 8</p>
-        </article>
-        <article class="kpi-card">
-          <div class="kpi-head"><span>เวลาหยุดให้บริการ</span><em id="downtime-unit">วันนี้</em></div>
-          <strong><span id="downtime-kpi">0</span><small> นาที</small></strong>
-          <p id="downtime-detail">ไม่พบ Downtime</p>
         </article>
         <article class="kpi-card">
           <div class="kpi-head"><span>รายการรอแก้ไข</span><em>Pending</em></div>
@@ -283,25 +290,11 @@
               <circle cx="12" cy="12" r="9" />
               <path d="M12 11v6M12 7h.01" />
             </svg>
-            <p>อ้างอิงโครงสร้างจากไฟล์ <strong>รายงานประจำวันชุมสาย v2.1.xlsx</strong><br><span>ข้อมูล Event Log: 1–31
-                สิงหาคม 2569</span></p>
+            <p>อ้างอิงโครงสร้างจากไฟล์ <strong>รายงานประจำวันชุมสาย v2.1.xlsx</strong><br><span id="data-source-range">ข้อมูล Event Log</span></p>
           </div>
         </article>
       </section>
 
-      <!-- Print-only signatures -->
-      <div class="print-signatures" aria-hidden="true">
-        <div class="print-sig-box">
-          <div class="print-sig-line"></div>
-          <div class="print-sig-label">ผู้จัดทำรายงาน</div>
-          <div class="print-sig-date">วันที่ ______/______/__________</div>
-        </div>
-        <div class="print-sig-box">
-          <div class="print-sig-line"></div>
-          <div class="print-sig-label">ผู้ตรวจสอบ</div>
-          <div class="print-sig-date">วันที่ ______/______/__________</div>
-        </div>
-      </div>
       <footer>ระบบ DTRS · โครงการเพิ่มประสิทธิภาพระบบโครงข่ายสื่อสารด้วยอุปกรณ์ทวนสัญญาณผ่านคลื่นความถี่สูง (SHF) <span id="app-version"></span>
       </footer>
     </main>

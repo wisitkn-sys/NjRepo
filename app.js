@@ -4,16 +4,20 @@ try { Object.assign(window.dashboardData, JSON.parse(localStorage.getItem("dtrs-
 
 const systems = window.dashboardData.systems;
 const stations = window.dashboardData.stations;
-const periodNames = { daily: "รายวัน", weekly: "รายสัปดาห์", monthly: "รายเดือน" };
+const periodNames = { daily: "รายวัน", weekly: "รายสัปดาห์", monthly: "รายเดือน", range: "ช่วงวันที่เลือก" };
 const statusLabel = (status) => ({ online: "Online", warning: "Warning", down: "Down" }[status] || status);
 let currentPeriod = "daily";
+let selectedDate = null;
+let rangeStart = null;
+let rangeEnd = null;
+let calendarMonth = null;
 const thaiDate = (date, options) => new Intl.DateTimeFormat("th-TH-u-ca-buddhist", options).format(new Date(date));
 
 function periodData(period, system = "all") {
   const allRows = (window.dashboardData.events?.rows || []).filter((row) => system === "all" || row.system === system);
   const allDates = [...new Set(allRows.map((row) => row.date))].sort();
-  const latest = allDates.at(-1);
-  const dates = period === "daily" ? [latest] : period === "weekly" ? allDates.slice(-7) : allDates.filter((date) => date.slice(0, 7) === latest?.slice(0, 7));
+  const latest = selectedDate && allDates.includes(selectedDate) ? selectedDate : allDates.at(-1);
+  const dates = period === "range" && rangeStart && rangeEnd ? allDates.filter((date) => date >= rangeStart && date <= rangeEnd) : period === "daily" ? [latest] : period === "weekly" ? allDates.filter((date) => date <= latest).slice(-7) : allDates.filter((date) => date.slice(0, 7) === latest?.slice(0, 7));
   return { dates, rows: allRows.filter((row) => dates.includes(row.date)) };
 }
 
@@ -21,6 +25,7 @@ function periodLabel(period, dates) {
   if (!dates.length) return window.dashboardData.summary?.reportDate || "ไม่มีข้อมูลวันที่";
   if (period === "daily") return thaiDate(dates[0], { day: "numeric", month: "long", year: "numeric" });
   if (period === "weekly") return thaiDate(dates[0], { day: "numeric", month: "short" }) + " – " + thaiDate(dates.at(-1), { day: "numeric", month: "short", year: "numeric" });
+  if (period === "range") return thaiDate(dates[0], { day: "numeric", month: "short" }) + " - " + thaiDate(dates.at(-1), { day: "numeric", month: "short", year: "numeric" });
   return thaiDate(dates.at(-1), { month: "long", year: "numeric" });
 }
 
@@ -41,24 +46,106 @@ function renderStations() {
   $("#station-result-count").textContent = rows.length + " สถานี";
 }
 
+const parseDateValue = (value) => { const [year, month, day] = value.split("-").map(Number); return new Date(year, month - 1, day); };
+const dateValue = (date) => [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
+
+function renderDateOptions() {
+  const dateFilter = $("#date-filter");
+  if (!dateFilter) return;
+  const dates = [...new Set((window.dashboardData.events?.rows || []).map((row) => row.date))].sort();
+  selectedDate = dates.includes(selectedDate) ? selectedDate : dates.at(-1);
+  calendarMonth = selectedDate ? parseDateValue(selectedDate) : new Date();
+  dateFilter.textContent = rangeStart && !rangeEnd ? "เริ่ม " + thaiDate(rangeStart, { day: "numeric", month: "short" }) : selectedDate ? thaiDate(selectedDate, { day: "numeric", month: "long", year: "numeric" }) : "เลือกวันที่";
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const monthLabel = $("#calendar-month-label");
+  const calendarGrid = $("#calendar-grid");
+  if (!monthLabel || !calendarGrid || !calendarMonth) return;
+  monthLabel.textContent = thaiDate(calendarMonth, { month: "long", year: "numeric" });
+  const firstDay = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+  const start = new Date(firstDay);
+  start.setDate(firstDay.getDate() - firstDay.getDay());
+  const availableDates = new Set((window.dashboardData.events?.rows || []).map((row) => row.date));
+  const selectedDates = new Set(rangeStart && rangeEnd ? periodData("range").dates : rangeStart ? [rangeStart] : periodData(currentPeriod).dates);
+  calendarGrid.innerHTML = Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    const value = dateValue(date);
+    const outside = date.getMonth() !== calendarMonth.getMonth();
+    const weekend = date.getDay() === 0 || date.getDay() === 6;
+    const classes = ["calendar-day", outside ? "outside-month" : "", weekend ? "weekend" : "", selectedDates.has(value) ? "selected" : ""].filter(Boolean).join(" ");
+    return '<button class="' + classes + '" type="button" data-date="' + value + '"' + (availableDates.has(value) ? "" : " disabled") + ' aria-label="' + thaiDate(date, { dateStyle: "full" }) + '">' + date.getDate() + "</button>";
+  }).join("");
+}
+
+function selectCalendarDate(value) {
+  if (!rangeStart || rangeEnd) {
+    rangeStart = value;
+    rangeEnd = null;
+    selectedDate = value;
+    renderDateOptions();
+    return;
+  }
+  rangeEnd = value;
+  if (rangeEnd < rangeStart) [rangeStart, rangeEnd] = [rangeEnd, rangeStart];
+  selectedDate = rangeEnd;
+  $$(".period-tab").forEach((tab) => { tab.classList.remove("active"); tab.setAttribute("aria-selected", "false"); });
+  renderDateOptions();
+  renderReport("range");
+  $("#calendar-dialog")?.close();
+}
+
+function positionCalendar() {
+  const dialog = $("#calendar-dialog");
+  const anchor = $("#date-picker-button") || $("#date-filter");
+  if (!dialog || !anchor) return;
+  const rect = anchor.getBoundingClientRect();
+  const width = dialog.offsetWidth;
+  const left = Math.min(Math.max(12, rect.left), window.innerWidth - width - 12);
+  const below = rect.bottom + 8;
+  const top = below + dialog.offsetHeight <= window.innerHeight - 12 ? below : Math.max(12, rect.top - dialog.offsetHeight - 8);
+  dialog.style.left = left + "px";
+  dialog.style.top = top + "px";
+}
+
+function openCalendar() {
+  const dialog = $("#calendar-dialog");
+  if (!dialog) return;
+  renderCalendar();
+  if (!dialog.open) dialog.show();
+  positionCalendar();
+  $("#date-filter")?.setAttribute("aria-expanded", "true");
+}
+
+function renderDataSourceRange() {
+  const range = $("#data-source-range");
+  if (!range) return;
+  const dates = [...new Set((window.dashboardData.events?.rows || []).map((row) => row.date))].sort();
+  if (!dates.length) { range.textContent = "ไม่พบข้อมูล Event Log"; return; }
+  const start = thaiDate(dates[0], { day: "numeric", month: "short", year: "numeric" });
+  const end = thaiDate(dates.at(-1), { day: "numeric", month: "short", year: "numeric" });
+  range.textContent = "ข้อมูล Event Log: " + (start === end ? start : start + " – " + end);
+}
+
 function renderReport(period) {
   currentPeriod = period;
   const data = periodData(period);
   const pLabel = periodLabel(period, data.dates);
-  $("#period-label").textContent = pLabel;
+  const reportPeriodName = periodNames[period];
+  if ($("#date-filter")) $("#date-filter").textContent = currentPeriod === "range" && rangeStart && rangeEnd ? periodLabel("range", data.dates) : rangeStart && !rangeEnd ? "เริ่ม " + thaiDate(rangeStart, { day: "numeric", month: "short" }) : selectedDate ? thaiDate(selectedDate, { day: "numeric", month: "long", year: "numeric" }) : "เลือกวันที่";
+  renderCalendar();
   const printLabel = $("#print-period-label");
-  if (printLabel) printLabel.textContent = "ช่วงรายงาน" + periodNames[period] + " (" + pLabel + ")";
-  $("#summary-title").textContent = "สรุปรายงานประจำ" + periodNames[period];
-  $("#trend-title").textContent = "แนวโน้มความพร้อมใช้งาน " + (period === "daily" ? "รายวัน" : period === "weekly" ? "7 วันล่าสุด" : "เดือนล่าสุด");
-  $("#content-title").textContent = "หัวข้อรายงาน" + periodNames[period];
-  $("#downtime-unit").textContent = period === "daily" ? "ล่าสุด" : periodNames[period];
+  if (printLabel) printLabel.textContent = "ช่วงรายงาน" + reportPeriodName + " (" + pLabel + ")";
+  $("#summary-title").textContent = "สรุปรายงานประจำ" + reportPeriodName;
+  $("#trend-title").textContent = "แนวโน้มความพร้อมใช้งาน " + (period === "daily" ? "รายวัน" : period === "weekly" ? "7 วันล่าสุด" : period === "range" ? "ช่วงวันที่เลือก" : "เดือนล่าสุด");
+  $("#content-title").textContent = "หัวข้อรายงาน" + reportPeriodName;
   const summary = window.dashboardData?.summary || { averageAvailability: 100, totalDowntime: 0 };
   const reportRows = data.rows;
   const availability = reportRows.length ? reportRows.reduce((sum, row) => sum + row.availability, 0) / reportRows.length : summary.averageAvailability;
   const downtime = reportRows.length ? (period === "daily" ? Math.max(...reportRows.map((row) => row.downtime)) : reportRows.reduce((sum, row) => sum + row.downtime, 0)) : summary.totalDowntime;
   $("#availability-kpi").innerHTML = availability.toFixed(2) + "<small>%</small>";
-  $("#downtime-kpi").textContent = downtime;
-  $("#downtime-detail").textContent = period === "daily" ? "สูงสุด " + downtime + " นาทีต่อระบบ" : "รวม " + downtime + " นาที";
   $("#summary-list").innerHTML = [["Availability", availability.toFixed(2) + "%"], ["สถานีออนไลน์", "16 / 16 จุด"], ["Downtime", downtime + " นาที"], ["Alarm", "0 รายการ"]].map((item) => "<div><dt>" + item[0] + "</dt><dd>" + item[1] + "</dd></div>").join("");
   $("#chart-legend").textContent = "Availability · SLA 95%";
   $("#report-checklist").innerHTML = ["ตรวจสอบสถานะระบบหลัก", "ตรวจสอบสถานีและอุปกรณ์", "สรุปความพร้อมใช้งานของระบบ และ ข้อบกพร่องรอการแก้ไข", "ยืนยันสถานะแจ้งผู้ใช้งาน"].map((item) => "<li>" + item + "</li>").join("");
@@ -66,7 +153,6 @@ function renderReport(period) {
 }
 
 function drawChart() {
-  ข้อความ
   const canvas = $("#availability-chart");
   if (!canvas) return;
   const context = canvas.getContext("2d");
@@ -140,14 +226,30 @@ async function importWorkbook(file) {
   window.dashboardData.events.rows = eventRows.map((row) => ({ system: row.System, date: new Date(row.Date).toISOString().slice(0, 10), availability: Number(row["Online (100%)"]), downtime: Number(row["Down time(min)"]) || 0 }));
   window.dashboardData.summary = { reportDate: "ข้อมูลล่าสุดจากไฟล์", averageAvailability: availability.reduce((a, b) => a + b, 0) / availability.length, totalDowntime: downtime };
   localStorage.setItem("dtrs-dashboard-data", JSON.stringify(window.dashboardData));
-  renderSystems(); renderStations(); renderReport("daily"); showToast();
+  rangeStart = null; rangeEnd = null;
+  renderSystems(); renderStations(); renderDateOptions(); renderDataSourceRange(); renderReport("daily"); showToast();
 }
 
 $("#system-filter")?.addEventListener("change", () => { renderSystems(); drawChart(); });
+$("#date-filter")?.addEventListener("click", openCalendar);
+$("#date-picker-button")?.addEventListener("click", openCalendar);
+$("#calendar-prev")?.addEventListener("click", () => { calendarMonth.setMonth(calendarMonth.getMonth() - 1); renderCalendar(); });
+$("#calendar-next")?.addEventListener("click", () => { calendarMonth.setMonth(calendarMonth.getMonth() + 1); renderCalendar(); });
+$("#calendar-grid")?.addEventListener("click", (event) => {
+  const day = event.target.closest("[data-date]");
+  if (!day || day.disabled) return;
+  selectCalendarDate(day.dataset.date);
+});
+$("#calendar-dialog")?.addEventListener("close", () => $("#date-filter")?.setAttribute("aria-expanded", "false"));
+document.addEventListener("pointerdown", (event) => {
+  const dialog = $("#calendar-dialog");
+  if (dialog?.open && !dialog.contains(event.target) && !event.target.closest("#date-filter, #date-picker-button")) dialog.close();
+});
+document.addEventListener("keydown", (event) => { if (event.key === "Escape") $("#calendar-dialog")?.close(); });
 $("#station-search")?.addEventListener("input", renderStations);
 $("#station-status")?.addEventListener("change", renderStations);
 $$(".station-type").forEach((button) => button.addEventListener("click", () => { $$(".station-type").forEach((item) => item.classList.remove("active")); button.classList.add("active"); renderStations(); }));
-$$(".period-tab").forEach((button) => button.addEventListener("click", () => { $$(".period-tab").forEach((item) => { item.classList.remove("active"); item.setAttribute("aria-selected", "false"); }); button.classList.add("active"); button.setAttribute("aria-selected", "true"); renderReport(button.dataset.period); }));
+$$(".period-tab").forEach((button) => button.addEventListener("click", () => { rangeStart = null; rangeEnd = null; $$(".period-tab").forEach((item) => { item.classList.remove("active"); item.setAttribute("aria-selected", "false"); }); button.classList.add("active"); button.setAttribute("aria-selected", "true"); renderReport(button.dataset.period); }));
 $$("[data-scroll]").forEach((button) => button.addEventListener("click", () => $("#" + button.dataset.scroll)?.scrollIntoView({ behavior: "smooth" })));
 $("#refresh-button")?.addEventListener("click", showToast);
 $("#print-button")?.addEventListener("click", () => window.print());
@@ -161,6 +263,7 @@ $("#import-file")?.addEventListener("change", async (event) => {
 });
 $("#dialog-close")?.addEventListener("click", () => $("#system-dialog")?.close());
 $("#system-dialog")?.addEventListener("click", (event) => { if (event.target === event.currentTarget) event.currentTarget.close(); });
-window.addEventListener("resize", drawChart);
-renderSystems(); renderStations(); renderReport("daily");
+window.addEventListener("resize", () => { drawChart(); if ($("#calendar-dialog")?.open) positionCalendar(); });
+window.addEventListener("scroll", () => { if ($("#calendar-dialog")?.open) positionCalendar(); }, true);
+renderSystems(); renderStations(); renderDateOptions(); renderDataSourceRange(); renderReport("daily");
 const _ver = window.dashboardData?.version; if (_ver && $("#app-version")) $("#app-version").textContent = "v" + _ver;

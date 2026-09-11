@@ -6,7 +6,7 @@ window.dashboardData = {
   systems: [
     { id: "BSSC", name: "BSSC", scope: "ระบบศูนย์ควบคุมสถานีแม่ข่าย", status: "online" },
     { id: "SD-WAN", name: "SD-WAN", scope: "ระบบบริหารจัดการ iMaster NCE Campus", status: "online" },
-    { id: "Microwave", name: "Microwave", scope: "ระบบบริหารจัดการอุปกรณ์ทวนสัญญาณ", status: "online" },
+    { id: "Microwave", name: "Microwave", scope: "ระบบบริหารจัดการอุปกรณ์ทวนสัญญาณ iMaster NCE-T", status: "online" },
     { id: "Dispatcher", name: "Dispatcher", scope: "ชุดสั่งการ", status: "online" }
   ],
   stations: [
@@ -24,7 +24,7 @@ window.dashboardData = {
     period: "2026-08-01/2026-08-31",
     systems: ["BSSC", "SD-WAN", "Microwave", "Dispatcher"],
     fields: ["system", "date", "availability", "downtime"],
-    rows:     [
+    rows: [
       {
         "system": "BSSC",
         "date": "2026-08-01",
