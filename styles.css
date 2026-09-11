@@ -102,7 +102,7 @@ footer { padding: 20px 0 4px; color: var(--text-tertiary); font-size: 11px; text
 @page { size: A4 portrait; margin: 10mm 15mm; }
 @media print {
   body { background: #fff !important; color: #000 !important; font-size: 11px !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .sidebar, .topbar, .top-actions, .period-bar, .station-tools, .toast, .dialog-close, #system-dialog, .source-note, .lower-grid, .customer-message { display: none !important; }
+  .sidebar, .topbar, .top-actions, .period-bar, .station-tools, .toast, .dialog-close, #system-dialog, .source-note, .customer-message { display: none !important; }
   .app-shell { display: block !important; min-height: auto !important; }
   .main-content { padding: 0 !important; max-width: 100% !important; }
   .print-header { display: flex !important; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 6px; margin-bottom: 8px; }
@@ -123,6 +123,12 @@ footer { padding: 20px 0 4px; color: var(--text-tertiary); font-size: 11px; text
   .kpi-card p { font-size: 9px !important; }
   .mini-progress { margin-top: 4px !important; height: 3px !important; }
   .dashboard-grid { grid-template-columns: 1.45fr 1fr !important; gap: 8px !important; margin-bottom: 8px !important; }
+  .lower-grid { display: block !important; margin-bottom: 8px !important; }
+  .report-panel { display: none !important; }
+  .stations-panel { display: block !important; }
+  .stations-panel .table-wrap { overflow: visible !important; }
+  .stations-panel table { min-width: 0 !important; font-size: 10px !important; }
+  .stations-panel th, .stations-panel td { padding: 5px 6px !important; }
   .panel { padding: 8px 10px !important; border: 1px solid #dde5eb !important; box-shadow: none !important; break-inside: avoid !important; }
   .panel-header { margin-bottom: 6px !important; }
   .panel-header h3 { font-size: 12px !important; }

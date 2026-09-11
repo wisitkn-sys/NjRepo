@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#12345b" />
   <meta name="description" content="แดชบอร์ดสรุปสถานะระบบ DTRS สำหรับรายงานรายวัน รายสัปดาห์ และรายเดือน" />
-  <title>DTRS System Dashboard</title>
+  <title>DOPA USO System Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -21,8 +21,8 @@
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
         <div>
-          <strong>DTRS</strong>
-          <small>Operations Center</small>
+          <strong>DOPA USO</strong>
+          <small>System Dashboard</small>
         </div>
       </div>
 
@@ -73,7 +73,10 @@
           <img src="./logo/Nbtc.png" alt="สำนักงาน กสทช." class="print-logo-nbtc" />
         </div>
         <div class="print-header-center">
-          <div class="print-project-title">การจัดซื้ออุปกรณ์พร้อมดำเนินการติดตั้ง<br>โครงการเพิ่มประสิทธิภาพระบบโครงข่ายสื่อสารด้วยอุปกรณ์ทวนสัญญาณผ่านคลื่นความถี่สูง (SHF)<br>เพื่อสนับสนุนการปฏิบัติราชการและแก้ไขปัญหาให้กับประชาชนในพื้นที่ห่างไกล<br>สัญญาเลขที่ ๘๖๘๐๒๒๘ ลงวันที่ ๒๓ กรกฎาคม ๒๕๖๘</div>
+          <div class="print-project-title">
+            การจัดซื้ออุปกรณ์พร้อมดำเนินการติดตั้ง<br>โครงการเพิ่มประสิทธิภาพระบบโครงข่ายสื่อสารด้วยอุปกรณ์ทวนสัญญาณผ่านคลื่นความถี่สูง
+            (SHF)<br>เพื่อสนับสนุนการปฏิบัติราชการและแก้ไขปัญหาให้กับประชาชนในพื้นที่ห่างไกล<br>สัญญาเลขที่ ๘๖๘๐๒๒๘
+            ลงวันที่ ๒๓ กรกฎาคม ๒๕๖๘</div>
         </div>
         <div class="print-logo-box">
           <img src="./logo/EX Forth.png" alt="Forth Corporation" class="print-logo-forth" />
@@ -81,8 +84,10 @@
       </div>
       <header class="topbar">
         <div>
-          <p class="eyebrow">ศูนย์ควบคุมระบบโครงข่ายสื่อสาร</p>
-          <h1>DTRS System Dashboard</h1>
+          <p class="eyebrow">ระบบศูนย์ควบคุมสถานีแม่ข่าย
+
+          </p>
+          <h1>DOPA USO System Dashboard</h1>
         </div>
         <div class="top-actions">
           <input id="import-file" type="file" accept=".xlsx,.xls" hidden />
@@ -125,12 +130,14 @@
             aria-selected="false">รายเดือน</button>
         </div>
         <div class="report-date">
-          <button class="date-picker-button" id="date-picker-button" type="button" aria-label="เปิดตัวเลือกวันที่รายงาน" aria-controls="date-filter">
+          <button class="date-picker-button" id="date-picker-button" type="button" aria-label="เปิดตัวเลือกวันที่รายงาน"
+            aria-controls="date-filter">
             <svg aria-hidden="true" viewBox="0 0 24 24">
               <path d="M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2zM7 2v4M17 2v4M3 9h18" />
             </svg>
           </button>
-          <button class="date-filter" id="date-filter" type="button" aria-label="เลือกวันที่รายงาน" aria-haspopup="dialog" aria-expanded="false">เลือกวันที่</button>
+          <button class="date-filter" id="date-filter" type="button" aria-label="เลือกวันที่รายงาน"
+            aria-haspopup="dialog" aria-expanded="false">เลือกวันที่</button>
           <dialog class="calendar-dialog" id="calendar-dialog" aria-labelledby="calendar-month-label">
             <div class="calendar-head">
               <button class="calendar-nav" id="calendar-prev" type="button" aria-label="เดือนก่อนหน้า">‹</button>
@@ -290,12 +297,14 @@
               <circle cx="12" cy="12" r="9" />
               <path d="M12 11v6M12 7h.01" />
             </svg>
-            <p>อ้างอิงโครงสร้างจากไฟล์ <strong>รายงานประจำวันชุมสาย v2.1.xlsx</strong><br><span id="data-source-range">ข้อมูล Event Log</span></p>
+            <p>อ้างอิงโครงสร้างจากไฟล์ <strong>รายงานประจำวันชุมสาย v2.1.xlsx</strong><br><span
+                id="data-source-range">ข้อมูล Event Log</span></p>
           </div>
         </article>
       </section>
 
-      <footer>ระบบ DTRS · โครงการเพิ่มประสิทธิภาพระบบโครงข่ายสื่อสารด้วยอุปกรณ์ทวนสัญญาณผ่านคลื่นความถี่สูง (SHF) <span id="app-version"></span>
+      <footer>ระบบ DTRS · โครงการเพิ่มประสิทธิภาพระบบโครงข่ายสื่อสารด้วยอุปกรณ์ทวนสัญญาณผ่านคลื่นความถี่สูง (SHF) <span
+          id="app-version"></span>
       </footer>
     </main>
   </div>
