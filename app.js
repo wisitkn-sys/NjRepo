@@ -1,6 +1,14 @@
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-try { Object.assign(window.dashboardData, JSON.parse(localStorage.getItem("dtrs-dashboard-data")) || {}); } catch { /* Keep bundled data. */ }
+const systemStatusSchema = 2;
+const bundledSystems = window.dashboardData.systems;
+try {
+  const storedData = JSON.parse(localStorage.getItem("dtrs-dashboard-data"));
+  if (storedData) {
+    Object.assign(window.dashboardData, storedData);
+    if (storedData.systemStatusSchema !== systemStatusSchema) window.dashboardData.systems = bundledSystems;
+  }
+} catch { /* Keep bundled data. */ }
 
 const systems = window.dashboardData.systems;
 const stations = window.dashboardData.stations;
@@ -203,7 +211,8 @@ async function importWorkbook(file) {
   systems.forEach((system) => {
     const row = overview.find((cells) => String(cells[20]).trim() === system.id);
     const status = String(row?.[22] || "");
-    system.status = /ปกติ|normal/i.test(status) ? "online" : "down";
+    if (/ปกติ|normal|online|operational|healthy|\bok\b/i.test(status)) system.status = "online";
+    if (/ขัดข้อง|down|offline|failed|critical/i.test(status)) system.status = "down";
   });
   const gatewayIndex = { value: 0 };
   const importedStations = overview.slice(3).filter((row) => /^(BS-\d+|AGW)$/i.test(String(row[0]))).map((row) => {
@@ -223,6 +232,7 @@ async function importWorkbook(file) {
   const downtime = eventRows.reduce((sum, row) => sum + (Number(row["Down time(min)"]) || 0), 0);
   window.dashboardData.events.rows = eventRows.map((row) => ({ system: row.System, date: new Date(row.Date).toISOString().slice(0, 10), availability: Number(row["Online (100%)"]), downtime: Number(row["Down time(min)"]) || 0 }));
   window.dashboardData.summary = { reportDate: "ข้อมูลล่าสุดจากไฟล์", averageAvailability: availability.reduce((a, b) => a + b, 0) / availability.length, totalDowntime: downtime };
+  window.dashboardData.systemStatusSchema = systemStatusSchema;
   localStorage.setItem("dtrs-dashboard-data", JSON.stringify(window.dashboardData));
   rangeStart = null; rangeEnd = null;
   renderSystems(); renderStations(); renderDateOptions(); renderDataSourceRange(); renderReport("daily"); showToast();

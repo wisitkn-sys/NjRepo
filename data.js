@@ -2,6 +2,7 @@
 // Sheets: รายงานสรุป, Overview, Event Log
 window.dashboardData = {
   version: "1.0.1",
+  systemStatusSchema: 2,
   source: "รายงานประจำวันชุมสาย v2.2.xlsx",
   systems: [
     { id: "BSSC", name: "BSSC", scope: "ระบบศูนย์ควบคุมสถานีแม่ข่าย", status: "online" },
