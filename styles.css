@@ -99,12 +99,12 @@ footer { padding: 20px 0 4px; color: var(--text-tertiary); font-size: 11px; text
 @media (max-width:760px) { .app-shell { display: block; } .sidebar { gap: 16px; padding: 14px 16px; } .nav-list { display: flex; overflow-x: auto; } .nav-item { flex: 0 0 auto; } .sidebar-note { display: none; } .main-content { padding: 18px 14px 24px; } .topbar, .period-bar, .action-center { align-items: stretch; flex-direction: column; } .top-actions { flex-wrap: wrap; } .top-actions .select-wrap { flex: 1; } .print-button { flex: 1; justify-content: center; } .kpi-grid, .dashboard-grid { grid-template-columns: 1fr; } .system-grid { grid-template-columns: 1fr 1fr; } .report-date { justify-content: space-between; } }
 @media (max-width:460px) { .system-grid, .dialog-metrics { grid-template-columns: 1fr; } .station-toggle { width: 100%; } .station-type { flex: 1; } h1 { font-size: var(--size-3xl); } }
 @media (max-width:460px) { .calendar-dialog { padding: 6px; } .calendar-weekdays, .calendar-grid { gap: 2px; } .calendar-weekdays { font-size: 11px; } .calendar-day { min-height: 44px; border-radius: 10px; } }
-@page { size: A4 portrait; margin: 10mm 15mm; }
+@page { size: A4 portrait; margin: 0; }
 @media print {
   body { background: #fff !important; color: #000 !important; font-size: 11px !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   .sidebar, .topbar, .top-actions, .period-bar, .station-tools, .toast, .dialog-close, #system-dialog, .source-note, .customer-message { display: none !important; }
   .app-shell { display: block !important; min-height: auto !important; }
-  .main-content { padding: 0 !important; max-width: 100% !important; }
+  .main-content { padding: 10mm 15mm !important; max-width: 100% !important; }
   .print-header { display: flex !important; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 6px; margin-bottom: 8px; }
   .print-logo-box { flex: 0 0 105px; display: flex; align-items: center; justify-content: center; }
   .print-logo-forth { max-width: 110px; max-height: 50px; object-fit: contain; }
