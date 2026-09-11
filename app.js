@@ -201,10 +201,8 @@ async function importWorkbook(file) {
   const overview = XLSX.utils.sheet_to_json(workbook.Sheets.Overview, { header: 1, defval: "" });
   const eventRows = XLSX.utils.sheet_to_json(workbook.Sheets["Event Log"], { defval: "" });
   systems.forEach((system) => {
-    const row = overview.find((cells) => cells.some((cell) => String(cell).trim() === system.id));
-    if (!row) return;
-    const index = row.findIndex((cell) => String(cell).trim() === system.id);
-    const status = String(row[index + 2] || row[index + 3] || "");
+    const row = overview.find((cells) => String(cells[20]).trim() === system.id);
+    const status = String(row?.[22] || "");
     system.status = /ปกติ|normal/i.test(status) ? "online" : "down";
   });
   const gatewayIndex = { value: 0 };
